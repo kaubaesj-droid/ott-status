@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="OTT 현황">
+<title>OTT 계정 현황</title>
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #f4f5f7; --card: #ffffff; --text: #1b1d21; --muted: #6b7280; --line: #e3e5e9;
+  --busy: #c62828; --busy-bg: #fdecec; --free: #1b7f4b; --free-bg: #e7f6ed; --accent: #2563eb;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111318; --card: #1b1e25; --text: #eceef2; --muted: #9aa1ad; --line: #2b2f38;
+    --busy: #ff8a80; --busy-bg: #3a1f1f; --free: #6fd39b; --free-bg: #17301f; --accent: #6ea0ff;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111318; --card: #1b1e25; --text: #eceef2; --muted: #9aa1ad; --line: #2b2f38;
+  --busy: #ff8a80; --busy-bg: #3a1f1f; --free: #6fd39b; --free-bg: #17301f; --accent: #6ea0ff;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+* { box-sizing: border-box; }
+body {
+  margin: 0; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; background: var(--bg); color: var(--text);
+  font-family: -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
+  line-height: 1.45;
+}
+.wrap { max-width: 560px; margin: 0 auto; padding: 16px 14px 40px; }
+h1 { font-size: 20px; margin: 4px 0 2px; }
+.sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.ott-title { font-weight: 700; font-size: 15px; margin-bottom: 8px; color: var(--accent); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); }
+.row:first-of-type { border-top: 0; }
+.acc { font-weight: 600; font-size: 16px; }
+.detail { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.pill { flex: none; font-size: 12.5px; font-weight: 700; padding: 5px 10px; border-radius: 999px; }
+.pill.busy { color: var(--busy); background: var(--busy-bg); }
+.pill.free { color: var(--free); background: var(--free-bg); }
+textarea {
+  width: 100%; min-height: 120px; resize: vertical; padding: 10px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--text); font: inherit; font-size: 16px;
+}
+.btns { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+button, .filebtn {
+  font: inherit; font-size: 15px; min-height: 44px; padding: 10px 16px; border-radius: 10px; display: inline-flex; align-items: center; border: 1px solid var(--line);
+  background: var(--card); color: var(--text); cursor: pointer;
+}
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.filebtn input { display: none; }
+.empty { color: var(--muted); font-size: 14px; text-align: center; padding: 22px 8px; }
+details summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+details p { color: var(--muted); font-size: 12.5px; margin: 8px 0; }
+.stamp { text-align: right; color: var(--muted); font-size: 12px; margin: -4px 2px 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📺 OTT 계정 현황</h1>
+  <div class="sub">톡방 내용을 붙여넣으면 어떤 계정이 비어 있는지 바로 알려줘요</div>
+
+  <div id="result"></div>
+  <div class="stamp" id="stamp"></div>
+
+  <div class="card">
+    <div class="ott-title" style="color:var(--text)">톡방 내용 붙여넣기</div>
+    <textarea id="paste" placeholder="여기에 톡방 대화를 붙여넣으세요&#10;(예) [홍길동] [오후 8:10] 넷플 키움2"></textarea>
+    <div class="btns">
+      <button class="primary" id="go">확인</button>
+      <label class="filebtn">txt 파일 선택<input type="file" id="file" accept=".txt,text/plain"></label>
+      <button id="clear">지우기</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>계정 목록 설정 (선택)</summary>
+      <p>한 줄에 OTT 하나씩 적으면, 아직 아무도 안 쓴 계정도 "사용 가능"으로 보여줘요.</p>
+      <textarea id="accounts" style="min-height:80px" placeholder="넷플릭스: 키움, 삼성, 미래&#10;티빙: 키움, 삼성"></textarea>
+      <div class="btns"><button id="saveAcc">저장</button></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>메시지 인식 규칙</summary>
+      <p>키움2 → 키움 계정 2시간 사용<br>넷플 키움2 → OTT 이름을 붙여도 돼요 (넷플·디플·왓챠·티빙)<br>키움1.5 → 1시간 30분<br>키움 끝 → 사용 종료</p>
+    </details>
+  </div>
+</div>
+
+<script>
+const OTT_ALIASES = {"넷플":"넷플릭스","넷플릭스":"넷플릭스","디플":"디즈니+","디즈니":"디즈니+","디즈니플러스":"디즈니+","왓챠":"왓챠","티빙":"티빙"};
+const RE_HDR = /^-*\s*(\d{4})년 (\d{1,2})월 (\d{1,2})일(?: [월화수목금토일]요일)?\s*-*$/;
+const RE_PC = /^\[(.+?)\] \[(오전|오후) (\d{1,2}):(\d{2})\] (.*)$/;
+const RE_MOB = /^(\d{4})(?:년 |\. ?)(\d{1,2})(?:월 |\. ?)(\d{1,2})(?:일|\.)? (오전|오후) (\d{1,2}):(\d{2}),? (.+?) : (.*)$/;
+const RE_USE = /^(?:(\S+)\s+)?([가-힣A-Za-z]+?)\s*(\d+(?:\.\d+)?)\s*(?:시간|h)?$/;
+const RE_END = /^(?:(\S+)\s+)?([가-힣A-Za-z]+?)\s*(?:끝|종료|반납)$/;
+
+function to24(ap, h) { return (parseInt(h, 10) % 12) + (ap === "오후" ? 12 : 0); }
+
+function parseLines(lines, nowRef) {
+  const entries = [];
+  let cur = null;
+  for (let line of lines) {
+    line = line.replace(/\r$/, "");
+    let m = line.match(RE_HDR);
+    if (m) { cur = new Date(+m[1], +m[2] - 1, +m[3]); continue; }
+    m = line.match(RE_MOB);
+    if (m) {
+      entries.push({ full: new Date(+m[1], +m[2] - 1, +m[3], to24(m[4], m[5]), +m[6]), who: m[7], text: m[8].trim() });
+      continue;
+    }
+    m = line.match(RE_PC);
+    if (m) entries.push({ date: cur, h: to24(m[2], m[3]), mi: +m[4], who: m[1], text: m[5].trim() });
+  }
+  const today = nowRef || new Date();
+  const firstDated = entries.find(e => e.date);
+  let day = firstDated
+    ? new Date(firstDated.date.getFullYear(), firstDated.date.getMonth(), firstDated.date.getDate() - 1)
+    : new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  let prevClock = null;
+  const out = new Array(entries.length);
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const e = entries[i];
+    if (e.full) { out[i] = { t: e.full, who: e.who, text: e.text }; continue; }
+    if (e.date) {
+      out[i] = { t: new Date(e.date.getFullYear(), e.date.getMonth(), e.date.getDate(), e.h, e.mi), who: e.who, text: e.text };
+      continue;
+    }
+    const clock = e.h * 60 + e.mi;
+    if (prevClock !== null && clock > prevClock) day = new Date(day.getFullYear(), day.getMonth(), day.getDate() - 1);
+    prevClock = clock;
+    out[i] = { t: new Date(day.getFullYear(), day.getMonth(), day.getDate(), e.h, e.mi), who: e.who, text: e.text };
+  }
+  return out;
+}
+
+function ottName(prefix) { return prefix && OTT_ALIASES[prefix] ? OTT_ALIASES[prefix] : "공통"; }
+
+function buildStatus(msgs) {
+  const status = new Map();
+  for (const { t, who, text } of msgs) {
+    let m = text.match(RE_END);
+    if (m) {
+      const ott = ottName(m[1]);
+      for (const [key, info] of status) {
+        const [o, acc] = key.split("|");
+        if (acc === m[2] && (ott === "공통" || o === ott) && t < info.end) info.end = t;
+      }
+      continue;
+    }
+    m = text.match(RE_USE);
+    if (m) {
+      const [, prefix, acc, hours] = m;
+      if (OTT_ALIASES[acc] && !prefix) continue;
+      status.set(ottName(prefix) + "|" + acc, { user: who, start: t, end: new Date(t.getTime() + parseFloat(hours) * 3600000) });
+    }
+  }
+  return status;
+}
+
+function fmtRemaining(ms) {
+  const mins = Math.floor(ms / 60000), h = Math.floor(mins / 60), m = mins % 60;
+  return h ? `${h}시간 ${m}분` : `${m}분`;
+}
+
+// 계정 목록 텍스트: "넷플릭스: 키움, 삼성" (줄마다 하나)
+function parseAccounts(txt) {
+  const res = {};
+  for (const line of (txt || "").split("\n")) {
+    const i = line.indexOf(":");
+    if (i < 0) continue;
+    const ott = line.slice(0, i).trim();
+    const accs = line.slice(i + 1).split(/[,，\s]+/).map(s => s.trim()).filter(Boolean);
+    if (ott && accs.length) res[OTT_ALIASES[ott] || ott] = accs;
+  }
+  return res;
+}
+
+// 화면용 데이터: {ott: [{acc, busy, user, end, left}]}
+function computeRows(status, accounts, now) {
+  const rows = {};
+  for (const [key, info] of status) {
+    const [ott, acc] = key.split("|");
+    (rows[ott] = rows[ott] || {})[acc] = info.end > now
+      ? { acc, busy: true, user: info.user, end: info.end, left: info.end - now }
+      : { acc, busy: false };
+  }
+  for (const [ott, accs] of Object.entries(accounts || {})) {
+    rows[ott] = rows[ott] || {};
+    for (const acc of accs) if (!rows[ott][acc]) rows[ott][acc] = { acc, busy: false };
+  }
+  const out = {};
+  for (const ott of Object.keys(rows)) out[ott] = Object.values(rows[ott]).sort((a, b) => a.acc.localeCompare(b.acc, "ko"));
+  return out;
+}
+
+
+// ── 저장소: 없거나 막혀 있어도 동작하도록 항상 try/catch ──
+function load(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
+function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+const $ = id => document.getElementById(id);
+let raw = load("ott_raw");
+let accounts = parseAccounts(load("ott_accounts"));
+$("paste").value = raw;
+$("accounts").value = load("ott_accounts");
+
+function pad(n) { return String(n).padStart(2, "0"); }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function render() {
+  const now = new Date();
+  const el = $("result");
+  if (!raw.trim()) {
+    el.innerHTML = '<div class="card empty">아래에 톡방 내용을 붙여넣거나<br>내보낸 txt 파일을 선택하세요</div>';
+    $("stamp").textContent = "";
+    return;
+  }
+  const rows = computeRows(buildStatus(parseLines(raw.split("\n"))), accounts, now);
+  const otts = Object.keys(rows);
+  if (!otts.length) {
+    el.innerHTML = '<div class="card empty">인식된 사용 기록이 없어요<br>(예: 키움2, 넷플 키움2)</div>';
+  } else {
+    el.innerHTML = otts.map(ott => `
+      <div class="card">
+        <div class="ott-title">${esc(ott)}</div>
+        ${rows[ott].map(r => r.busy
+          ? `<div class="row"><div><div class="acc">${esc(r.acc)}</div>
+               <div class="detail">${esc(r.user)}님 · ${pad(r.end.getHours())}:${pad(r.end.getMinutes())} 종료 (${fmtRemaining(r.left)} 남음)</div></div>
+               <span class="pill busy">사용중</span></div>`
+          : `<div class="row"><div><div class="acc">${esc(r.acc)}</div></div><span class="pill free">사용 가능</span></div>`
+        ).join("")}
+      </div>`).join("");
+  }
+  $("stamp").textContent = `${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} 기준`;
+}
+
+function apply() { raw = $("paste").value; save("ott_raw", raw); render(); }
+
+$("go").addEventListener("click", apply);
+$("paste").addEventListener("input", () => { clearTimeout(window.__t); window.__t = setTimeout(apply, 300); });
+$("clear").addEventListener("click", () => { $("paste").value = ""; apply(); });
+$("file").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => { $("paste").value = String(rd.result); apply(); };
+  rd.readAsText(f, "utf-8");
+});
+$("saveAcc").addEventListener("click", () => {
+  save("ott_accounts", $("accounts").value);
+  accounts = parseAccounts($("accounts").value);
+  render();
+});
+
+render();
+setInterval(render, 30000); // 남은 시간 자동 갱신
+</script>
+</body>
+</html>
