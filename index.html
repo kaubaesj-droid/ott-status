@@ -210,9 +210,8 @@ function load(k) { try { return localStorage.getItem(k) || ""; } catch (e) { ret
 function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
 const $ = id => document.getElementById(id);
-let raw = load("ott_raw");
+let raw = ""; // 붙여넣은 내용은 저장하지 않음: 다시 들어오면 빈 화면으로 시작
 let accounts = parseAccounts(load("ott_accounts"));
-$("paste").value = raw;
 $("accounts").value = load("ott_accounts");
 
 function pad(n) { return String(n).padStart(2, "0"); }
@@ -245,7 +244,7 @@ function render() {
   $("stamp").textContent = `${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())} 기준`;
 }
 
-function apply() { raw = $("paste").value; save("ott_raw", raw); render(); }
+function apply() { raw = $("paste").value; render(); }
 
 $("go").addEventListener("click", apply);
 $("paste").addEventListener("input", () => { clearTimeout(window.__t); window.__t = setTimeout(apply, 300); });
